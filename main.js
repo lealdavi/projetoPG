@@ -5,6 +5,8 @@ import { OrbitControls } from "three/examples/jsm/Addons.js";
 import { buildRoom } from "./world";
 import { setupPlayer, updatePlayerMovement } from "./player";
 
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
 const canvas = document.querySelector("#c");
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 
@@ -20,6 +22,45 @@ const cameraPov = new THREE.PerspectiveCamera(fov, aspect, near, far);
 cameraPov.position.set(0, 4, 0);
 
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+//adicionando vaso
+const loader = new GLTFLoader();
+
+loader.load(
+  "/modelos/vaso.glb", 
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(0, 2.2, 0);
+    modelo.scale.set(2, 2, 2);
+
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  }
+);
+
+//adicionando pilar
+
+loader.load(
+  "/modelos/pilar_greece.glb", 
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(0, 0, 0);
+    modelo.scale.set(50, 20, 50);
+
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  }
+);
+
+
 
 const room = buildRoom();
 scene.add(room);
@@ -66,3 +107,4 @@ function animate(time) {
 }
 
 renderer.setAnimationLoop(animate);
+
