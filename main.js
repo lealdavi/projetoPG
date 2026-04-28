@@ -31,8 +31,8 @@ loader.load(
   (gltf) => {
     const modelo = gltf.scene;
 
-    modelo.position.set(0, 2.2, 0);
-    modelo.scale.set(2, 2, 2);
+    modelo.position.set(0, 2.8, 0);
+    modelo.scale.set(5, 5, 5);
 
     scene.add(modelo);
   },
@@ -50,7 +50,7 @@ loader.load(
     const modelo = gltf.scene;
 
     modelo.position.set(0, 0, 0);
-    modelo.scale.set(50, 20, 50);
+    modelo.scale.set(50, 25, 50);
 
     scene.add(modelo);
   },
