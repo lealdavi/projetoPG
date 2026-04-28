@@ -27,7 +27,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const loader = new GLTFLoader();
 
 loader.load(
-  "/modelos/vaso.glb", 
+  "/models/vaso.glb", 
   (gltf) => {
     const modelo = gltf.scene;
 
@@ -45,7 +45,7 @@ loader.load(
 //adicionando pilar
 
 loader.load(
-  "/modelos/pilar_greece.glb", 
+  "/models/pilar_greece.glb", 
   (gltf) => {
     const modelo = gltf.scene;
 
@@ -60,6 +60,24 @@ loader.load(
   }
 );
 
+
+//adicionando Afrodite
+
+loader.load(
+  "/models/aphrodite_statuette.glb",
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(12.5, 0, -7.5);
+    modelo.scale.set(0.07, 0.07, 0.07);
+
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  }
+);
 
 
 const room = buildRoom();
