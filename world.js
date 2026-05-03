@@ -1,86 +1,69 @@
 import * as THREE from "three";
+import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
 
-const room = { width: 30, height: 10, depth: 20 };
+export const room = { width: 30, height: 10, depth: 20 };
 
 const roomSurfaces = [
-  // 1. Floor
   {
     name: "floor",
     width: room.width,
     length: room.depth,
-    map: "/textures/floor_textures/diff.png",
-    normalMap: "/textures/floor_textures/nor.png",
-    roughnessMap: "/textures/floor_textures/rough.png",
+    texture: "/textures/floor/herringbone_parquet_4k.gltf",
     pos_x: 0,
     pos_y: 0,
     pos_z: 0,
     rot_x: -Math.PI / 2,
     rot_y: 0,
   },
-  // 2. Ceiling
   {
     name: "ceiling",
     width: room.width,
     length: room.depth,
-    map: "/textures/floor_textures/diff.png",
-    normalMap: "/textures/floor_textures/nor.png",
-    roughnessMap: "/textures/floor_textures/rough.png",
+    texture: "/textures/wall/plastered_wall_4k.gltf",
     pos_x: 0,
     pos_y: room.height,
     pos_z: 0,
     rot_x: Math.PI / 2,
     rot_y: 0,
   },
-  // 3. Left Wall (-X)
   {
     name: "left_wall",
     width: room.depth,
     length: room.height,
-    map: "/textures/wall_textures/diff.png",
-    normalMap: "/textures/wall_textures/nor.png",
-    roughnessMap: "/textures/wall_textures/rough.png",
+    texture: "/textures/wall/plastered_wall_4k.gltf",
     pos_x: -room.width / 2,
     pos_y: room.height / 2,
     pos_z: 0,
     rot_x: 0,
     rot_y: Math.PI / 2,
   },
-  // 4. Right Wall (+X)
   {
     name: "right_wall",
     width: room.depth,
     length: room.height,
-    map: "/textures/wall_textures/diff.png",
-    normalMap: "/textures/wall_textures/nor.png",
-    roughnessMap: "/textures/wall_textures/rough.png",
+    texture: "/textures/wall/plastered_wall_4k.gltf",
     pos_x: room.width / 2,
     pos_y: room.height / 2,
     pos_z: 0,
     rot_x: 0,
     rot_y: -Math.PI / 2,
   },
-  // 5. Front Wall (-Z) (Deepest part of the room, looking forward)
   {
     name: "front_wall",
     width: room.width,
     length: room.height,
-    map: "/textures/wall_textures/diff.png",
-    normalMap: "/textures/wall_textures/nor.png",
-    roughnessMap: "/textures/wall_textures/rough.png",
+    texture: "/textures/wall/plastered_wall_4k.gltf",
     pos_x: 0,
     pos_y: room.height / 2,
     pos_z: -room.depth / 2,
     rot_x: 0,
     rot_y: 0,
   },
-  // 6. Back Wall (+Z) (Behind the camera, closing the room)
   {
     name: "back_wall",
     width: room.width,
     length: room.height,
-    map: "/textures/wall_textures/diff.png",
-    normalMap: "/textures/wall_textures/nor.png",
-    roughnessMap: "/textures/wall_textures/rough.png",
+    texture: "/textures/wall/plastered_wall_4k.gltf",
     pos_x: 0,
     pos_y: room.height / 2,
     pos_z: room.depth / 2,
@@ -89,50 +72,81 @@ const roomSurfaces = [
   },
 ];
 
-function makePlane(width, length, diff_path, nor_path, rough_path) {
-  const loader = new THREE.TextureLoader();
-  const textureDiff = loader.load(diff_path);
-  const textureNor = loader.load(nor_path);
-  const textureRough = loader.load(rough_path);
+const loader = new GLTFLoader();
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("/examples/jsm/libs/draco/");
+loader.setDRACOLoader(dracoLoader);
 
-  const material = new THREE.MeshStandardMaterial({
-    map: textureDiff,
-    normalMap: textureNor,
-    roughnessMap: textureRough,
-    color: 0xffffff,
+const materialCache = {};
+
+function loadMaterial(gltfPath) {
+  if (materialCache[gltfPath]) {
+    return Promise.resolve(materialCache[gltfPath]);
+  }
+
+  return new Promise((resolve, reject) => {
+    loader.load(
+      gltfPath,
+      (gltf) => {
+        let sourceMaterial = null;
+        gltf.scene.traverse((child) => {
+          if (child.isMesh && !sourceMaterial) {
+            sourceMaterial = child.material;
+          }
+        });
+
+        if (!sourceMaterial) {
+          reject(new Error(`No mesh material found in ${gltfPath}`));
+          return;
+        }
+
+        materialCache[gltfPath] = sourceMaterial;
+        resolve(sourceMaterial);
+      },
+      undefined,
+      reject,
+    );
   });
-
-  [textureDiff, textureNor, textureRough].forEach((tex) => {
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(width / 4, length / 4);
-  });
-  const geometry = new THREE.PlaneGeometry(width, length);
-  const plane = new THREE.Mesh(geometry, material);
-
-  return plane;
 }
 
-export function buildRoom() {
+async function makePlane(width, length, gltfPath) {
+  const sourceMaterial = await loadMaterial(gltfPath);
+
+  const material = sourceMaterial.clone();
+
+  const mapKeys = ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap"];
+  mapKeys.forEach((key) => {
+    if (material[key]) {
+      material[key] = material[key].clone();
+      material[key].wrapS = THREE.RepeatWrapping;
+      material[key].wrapT = THREE.RepeatWrapping;
+      material[key].repeat.set(width / 4, length / 4);
+      material[key].needsUpdate = true;
+    }
+  });
+
+  const geometry = new THREE.PlaneGeometry(width, length);
+  return new THREE.Mesh(geometry, material);
+}
+
+export async function buildRoom() {
   const roomGroup = new THREE.Group();
 
-  roomSurfaces.forEach((surface) => {
-    const plane = makePlane(
-      surface.width,
-      surface.length,
-      surface.map,
-      surface.normalMap,
-      surface.roughnessMap,
-    );
+  const planes = await Promise.all(
+    roomSurfaces.map(async (surface) => {
+      const plane = await makePlane(
+        surface.width,
+        surface.length,
+        surface.texture,
+      );
+      plane.position.set(surface.pos_x, surface.pos_y, surface.pos_z);
+      plane.rotation.set(surface.rot_x, surface.rot_y, 0);
+      plane.name = surface.name;
+      return plane;
+    }),
+  );
 
-    plane.position.set(surface.pos_x, surface.pos_y, surface.pos_z);
-
-    plane.rotation.set(surface.rot_x, surface.rot_y, 0);
-
-    plane.name = surface.name;
-
-    roomGroup.add(plane);
-  });
+  planes.forEach((plane) => roomGroup.add(plane));
 
   return roomGroup;
 }
