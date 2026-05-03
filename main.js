@@ -5,7 +5,11 @@ import { setupPlayer, updatePlayerMovement } from "./player";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const canvas = document.querySelector("#c");
-const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  canvas,
+  powerPreference: "high-performance",
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
