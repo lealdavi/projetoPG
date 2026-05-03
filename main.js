@@ -25,18 +25,43 @@ cameraPov.position.set(0, 4, 0);
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 
+const cameraFixa = new THREE.PerspectiveCamera(fov, aspect, near, far);
+cameraFixa.position.set(14, 8, 9);
+cameraFixa.lookAt(0, 0, 0);
+
+let cameraAtiva = cameraPov;
+
+window.addEventListener("keydown", (event) => {
+  if (event.code === "KeyC") {
+    cameraAtiva = cameraAtiva === cameraPov ? cameraFixa : cameraPov;
+  }
+});
+
+window.addEventListener("resize", () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  renderer.setSize(w, h);
+  cameraPov.aspect = w / h;
+  cameraPov.updateProjectionMatrix();
+  cameraFixa.aspect = w / h;
+  cameraFixa.updateProjectionMatrix();
+});
+
+// ── Modelos ──────────────────────────────────────────────────────────
+
 //adicionando vaso
 const loader = new GLTFLoader();
+let vaso;
 
 loader.load(
   "/models/vaso.glb",
   (gltf) => {
-    const modelo = gltf.scene;
+    vaso = gltf.scene;
 
-    modelo.position.set(0, 2.8, 0);
-    modelo.scale.set(5, 5, 5);
+    vaso.position.set(0, 2.8, 0);
+    vaso.scale.set(5, 5, 5);
 
-    scene.add(modelo);
+    scene.add(vaso);
   },
   undefined,
   (error) => {
@@ -44,7 +69,7 @@ loader.load(
   },
 );
 
-//adicionando pilar
+//adicionando pilar vaso
 
 loader.load(
   "/models/pilar_greece.glb",
@@ -168,7 +193,7 @@ loader.load(
   },
 );
 
-//adicionando pilar
+//adicionando pilar césar
 
 loader.load(
   "/models/pilar_greece.glb",
@@ -184,66 +209,6 @@ loader.load(
   (error) => {
     console.error("Erro ao carregar modelo:", error);
   },
-);
-
-const cameraFixa = new THREE.PerspectiveCamera(fov, aspect, near, far);
-cameraFixa.position.set(14, 8, 9);
-cameraFixa.lookAt(0, 0, 0);
-
-let cameraAtiva = cameraPov;
-
-window.addEventListener("keydown", (event) => {
-  if (event.code === "KeyC") {
-    cameraAtiva = cameraAtiva === cameraPov ? cameraFixa : cameraPov;
-  }
-});
-
-window.addEventListener("resize", () => {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  renderer.setSize(w, h);
-  cameraPov.aspect = w / h;
-  cameraPov.updateProjectionMatrix();
-  cameraFixa.aspect = w / h;
-  cameraFixa.updateProjectionMatrix();
-});
-
-// ── Modelos ──────────────────────────────────────────────────────────
-
-loader.load(
-  "/models/vaso.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(0, 2.8, 0);
-    modelo.scale.set(5, 5, 5);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar vaso:", error),
-);
-
-loader.load(
-  "/models/pilar_greece.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(0, 0, 0);
-    modelo.scale.set(50, 25, 50);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar pilar:", error),
-);
-
-loader.load(
-  "/models/aphrodite_statuette.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(12.5, 0, -7.5);
-    modelo.scale.set(0.07, 0.07, 0.07);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar Afrodite:", error),
 );
 
 // ── Sala ─────────────────────────────────────────────────────────────
@@ -438,6 +403,8 @@ function animate() {
   detectCollision();
   playerBody.position.copy(cameraPov.position);
   playerBody.position.y -= 2;
+  vaso.rotation.y += 0.01;
+
   renderer.render(scene, cameraAtiva);
 }
 
