@@ -79,6 +79,74 @@ loader.load(
   }
 );
 
+  //adicionando quadro Casinha
+
+loader.load(
+  "/models/fancy_picture_frame_01_2k/fancy_picture_frame_01_2k.gltf",
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(0, 5, -10);
+    modelo.scale.set(20, 20, 5);
+
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  }
+);
+
+  //adicionando quadro revolução industrial
+
+  loader.load(
+    "/models/fancy_picture_frame_02_2k/fancy_picture_frame_02_2k.gltf",
+    (gltf) => {
+      const modelo = gltf.scene;
+  
+      modelo.position.set(-15, 5, 0);
+      modelo.scale.set(10, 10, 3);
+      modelo.rotation.y = Math.PI / 2;
+      scene.add(modelo);
+    },
+    undefined,
+    (error) => {
+      console.error("Erro ao carregar modelo:", error);
+    }
+  );
+
+  //adicionando quadro
+
+  loader.load(
+    "/models/hanging_picture_frame_02_2k/hanging_picture_frame_02_2k.gltf",
+    (gltf) => {
+      const modelo = gltf.scene;
+
+      modelo.traverse((child) => {
+        if (child.isMesh && child.material) {
+          // Tira o aspecto de "metal/espelho" da tela que faz ela refletir preto
+          child.material.metalness = 0; 
+          child.material.roughness = 1; 
+
+          // Se o criador colocou um vidro na frente da pintura, nós o escondemos
+          if (child.name.toLowerCase().includes("glass") || 
+              child.material.name.toLowerCase().includes("glass")) {
+            child.visible = false; 
+        }
+      }
+    });
+  
+      modelo.position.set(15, 5, 0);
+      modelo.scale.set(10, 10, 3);
+      modelo.rotation.y = -Math.PI / 2;
+      scene.add(modelo);
+    },
+    undefined,
+    (error) => {
+      console.error("Erro ao carregar modelo:", error);
+    }
+  );
+
 
 const room = buildRoom();
 scene.add(room);
