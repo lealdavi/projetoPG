@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
 import { room, buildRoom } from "./world";
-import { setupPlayer, updatePlayerMovement } from "./player";
+import { setupPlayer, updatePlayerMovement, moveState } from "./player";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { FBXLoader } from "three/examples/jsm/Addons.js";
 
 const canvas = document.querySelector("#c");
 const renderer = new THREE.WebGLRenderer({
@@ -21,9 +22,7 @@ const near = 0.1;
 const far = 1000;
 
 const cameraPov = new THREE.PerspectiveCamera(fov, aspect, near, far);
-cameraPov.position.set(0, 4, 0);
-
-renderer.setSize(window.innerWidth, window.innerHeight);
+cameraPov.position.set(0, 4, 5);
 
 //adicionando vaso
 const loader = new GLTFLoader();
@@ -208,44 +207,6 @@ window.addEventListener("resize", () => {
   cameraFixa.updateProjectionMatrix();
 });
 
-// ── Modelos ──────────────────────────────────────────────────────────
-
-loader.load(
-  "/models/vaso.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(0, 2.8, 0);
-    modelo.scale.set(5, 5, 5);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar vaso:", error),
-);
-
-loader.load(
-  "/models/pilar_greece.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(0, 0, 0);
-    modelo.scale.set(50, 25, 50);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar pilar:", error),
-);
-
-loader.load(
-  "/models/aphrodite_statuette.glb",
-  (gltf) => {
-    const modelo = gltf.scene;
-    modelo.position.set(12.5, 0, -7.5);
-    modelo.scale.set(0.07, 0.07, 0.07);
-    scene.add(modelo);
-  },
-  undefined,
-  (error) => console.error("Erro ao carregar Afrodite:", error),
-);
-
 // ── Sala ─────────────────────────────────────────────────────────────
 const roomGroup = await buildRoom();
 scene.add(roomGroup);
@@ -406,6 +367,67 @@ const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
 const playerBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
 scene.add(playerBody);
 
+const fbxLoader = new FBXLoader();
+let playerModel = null;
+let mixer = null;
+const clock = new THREE.Clock();
+
+const actions = {};
+let currentAction = null;
+
+function playAction(name, fadeTime = 0.2) {
+  const next = actions[name];
+  if (!next || currentAction === next) return;
+  if (currentAction) currentAction.fadeOut(fadeTime);
+  next.reset().fadeIn(fadeTime).play();
+  currentAction = next;
+}
+
+// Carrega uma animação e guarda em actions[name]
+function loadAnim(name, file, onDone) {
+  fbxLoader.load(`/models/Basic Locomotion Pack/${file}`, (anim) => {
+    const clip = anim.animations[0];
+    if (!clip) return;
+    actions[name] = mixer.clipAction(clip);
+    if (onDone) onDone();
+  });
+}
+
+fbxLoader.load("/models/Basic Locomotion Pack/X Bot.fbx", (fbx) => {
+  playerModel = fbx;
+
+  // Remove chão embutido do Mixamo
+  playerModel.traverse((child) => {
+    if (child.isMesh) {
+      const name = child.name.toLowerCase();
+      console.log("mesh:", child.name);
+      if (
+        name.includes("floor") ||
+        name.includes("ground") ||
+        name.includes("plane") ||
+        name.includes("beta_surface")
+      ) {
+        child.visible = false;
+      }
+    }
+  });
+
+  playerModel.scale.set(0.02, 0.02, 0.02);
+  playerModel.visible = false;
+  scene.add(playerModel);
+
+  mixer = new THREE.AnimationMixer(playerModel);
+
+  // Carrega todas as animações e começa no idle
+  loadAnim("idle", "idle.fbx", () => playAction("idle"));
+  loadAnim("walk", "walking.fbx");
+  loadAnim("strafeLeft", "left strafe walking.fbx");
+  loadAnim("strafeRight", "right strafe walking.fbx");
+  loadAnim("turnLeft", "left turn 90.fbx");
+  loadAnim("turnRight", "right turn 90.fbx");
+  loadAnim("jump", "jump.fbx");
+});
+
 // ── Controles ────────────────────────────────────────────────────────
 const controls = setupPlayer(cameraPov, document.body);
 
@@ -433,11 +455,37 @@ function detectCollision() {
 
 // ── Loop principal ───────────────────────────────────────────────────
 function animate() {
+  const delta = clock.getDelta();
   const speed = 0.1;
+
   updatePlayerMovement(controls, speed);
   detectCollision();
+
   playerBody.position.copy(cameraPov.position);
   playerBody.position.y -= 2;
+
+  if (playerModel) {
+    playerModel.position.copy(cameraPov.position);
+    playerModel.position.y -= 1.6;
+    playerModel.rotation.y = cameraPov.rotation.y;
+    playerModel.visible = cameraAtiva === cameraFixa;
+
+    if (mixer) {
+      if (moveState.forward || moveState.backward) {
+        playAction("walk");
+      } else if (moveState.left) {
+        playAction("strafeLeft");
+      } else if (moveState.right) {
+        playAction("strafeRight");
+      } else {
+        playAction("idle");
+      }
+    }
+  }
+
+  if (mixer) mixer.update(delta);
+
+  playerBody.visible = false;
   renderer.render(scene, cameraAtiva);
 }
 
