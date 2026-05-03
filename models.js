@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { getModelUrl } from "./helper";
 
 export async function createModels() {
   const loader = new GLTFLoader();
@@ -7,7 +8,7 @@ export async function createModels() {
 
   async function load(path, configure) {
     try {
-      const gltf = await loader.loadAsync(path);
+      const gltf = await loader.loadAsync(getModelUrl(path));
       configure(gltf.scene);
       return gltf.scene;
     } catch (error) {
@@ -21,6 +22,7 @@ export async function createModels() {
     pilar_greece,
     aphrodite_statuette,
     casinha,
+    quadro_rev_industrial,
     quadro,
     cesar,
     pilar_cesar,
@@ -57,6 +59,15 @@ export async function createModels() {
       },
     ),
 
+    load(
+      "/models/hanging_picture_frame_02_2k/hanging_picture_frame_02_2k.gltf",
+      (modelo) => {
+        modelo.position.set(15, 5, 0);
+        modelo.scale.set(10, 10, 3);
+        modelo.rotation.y = -Math.PI / 2;
+      },
+    ),
+
     load("/models/marble_bust_01_2k/marble_bust_01_2k.gltf", (modelo) => {
       modelo.position.set(-12.5, 3.4, -7.5);
       modelo.scale.set(10, 10, 10);
@@ -82,9 +93,6 @@ export async function createModels() {
         }
       }
     });
-    quadro.position.set(15, 5, 0);
-    quadro.scale.set(10, 10, 3);
-    quadro.rotation.y = -Math.PI / 2;
   }
 
   const models = [
@@ -92,10 +100,12 @@ export async function createModels() {
     pilar_greece,
     aphrodite_statuette,
     casinha,
+    quadro_rev_industrial,
     quadro,
     cesar,
     pilar_cesar,
   ];
+
   models.forEach((model) => {
     if (model) modelGroup.add(model);
   });

@@ -69,7 +69,7 @@ scene.add(playerBody);
 const controls = setupPlayer(cameraPov, document.body);
 
 // ── Colisão nas paredes ──────────────────────────────────────────────
-const MARGIN = 1;
+const MARGIN = 1.75;
 
 function detectCollision() {
   const halfW = room.width / 2 - MARGIN;
@@ -102,8 +102,20 @@ function animate() {
 
   if (playerModel) {
     playerModel.position.copy(cameraPov.position);
-    playerModel.position.y -= 1.6;
-    playerModel.rotation.y = cameraPov.rotation.y;
+    playerModel.position.y = 0;
+
+    const direction = new THREE.Vector3();
+    cameraPov.getWorldDirection(direction);
+
+    direction.y = 0;
+    direction.normalize();
+
+    const targetPoint = new THREE.Vector3()
+      .copy(playerModel.position)
+      .add(direction);
+
+    playerModel.lookAt(targetPoint);
+
     playerModel.visible = cameraAtiva === cameraFixa;
 
     if (mixer) {

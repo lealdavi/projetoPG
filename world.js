@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
+import { getModelUrl } from "./helper";
 
 export const room = { width: 30, height: 10, depth: 20 };
 
@@ -77,53 +78,31 @@ const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath("/examples/jsm/libs/draco/");
 loader.setDRACOLoader(dracoLoader);
 
-const materialCache = {};
-
-function loadMaterial(gltfPath) {
-  if (materialCache[gltfPath]) {
-    return Promise.resolve(materialCache[gltfPath]);
-  }
-
-  return new Promise((resolve, reject) => {
-    loader.load(
-      gltfPath,
-      (gltf) => {
-        let sourceMaterial = null;
-        gltf.scene.traverse((child) => {
-          if (child.isMesh && !sourceMaterial) {
-            sourceMaterial = child.material;
-          }
-        });
-
-        if (!sourceMaterial) {
-          reject(new Error(`No mesh material found in ${gltfPath}`));
-          return;
-        }
-
-        materialCache[gltfPath] = sourceMaterial;
-        resolve(sourceMaterial);
-      },
-      undefined,
-      reject,
-    );
-  });
-}
-
 async function makePlane(width, length, gltfPath) {
-  const sourceMaterial = await loadMaterial(gltfPath);
+  const gltf = await loader.loadAsync(getModelUrl(gltfPath));
 
-  const material = sourceMaterial.clone();
+  let material = null;
+  gltf.scene.traverse((child) => {
+    if (child.isMesh && !material) {
+      material = child.material;
+    }
+  });
+
+  if (!material) {
+    throw new Error(`No mesh material found in ${gltfPath}`);
+  }
 
   const mapKeys = ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap"];
   mapKeys.forEach((key) => {
     if (material[key]) {
-      material[key] = material[key].clone();
       material[key].wrapS = THREE.RepeatWrapping;
       material[key].wrapT = THREE.RepeatWrapping;
       material[key].repeat.set(width / 4, length / 4);
       material[key].needsUpdate = true;
     }
   });
+
+  material.needsUpdate = true;
 
   const geometry = new THREE.PlaneGeometry(width, length);
   return new THREE.Mesh(geometry, material);
