@@ -150,6 +150,42 @@ loader.load(
   },
 );
 
+//adiciona César
+
+loader.load(
+  "/models/marble_bust_01_2k/marble_bust_01_2k.gltf",
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(-12.5, 3.4, -7.5);
+    modelo.scale.set(10, 10, 10);
+    modelo.rotation.y = Math.PI / 2;
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  },
+);
+
+//adicionando pilar
+
+loader.load(
+  "/models/pilar_greece.glb",
+  (gltf) => {
+    const modelo = gltf.scene;
+
+    modelo.position.set(-12.5, 0, -7.5);
+    modelo.scale.set(100, 30, 50);
+
+    scene.add(modelo);
+  },
+  undefined,
+  (error) => {
+    console.error("Erro ao carregar modelo:", error);
+  },
+);
+
 const cameraFixa = new THREE.PerspectiveCamera(fov, aspect, near, far);
 cameraFixa.position.set(14, 8, 9);
 cameraFixa.lookAt(0, 0, 0);
