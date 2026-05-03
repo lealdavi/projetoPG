@@ -409,10 +409,33 @@ scene.add(playerBody);
 // ── Controles ────────────────────────────────────────────────────────
 const controls = setupPlayer(cameraPov, document.body);
 
+// ── Colisão nas paredes ──────────────────────────────────────────────
+const MARGIN = 1;
+
+function detectCollision() {
+  const halfW = room.width / 2 - MARGIN;
+  const halfD = room.depth / 2 - MARGIN;
+
+  cameraPov.position.x = Math.max(
+    -halfW,
+    Math.min(halfW, cameraPov.position.x),
+  );
+  cameraPov.position.z = Math.max(
+    -halfD,
+    Math.min(halfD, cameraPov.position.z),
+  );
+
+  cameraPov.position.y = Math.max(
+    1.6,
+    Math.min(room.height - 0.5, cameraPov.position.y),
+  );
+}
+
 // ── Loop principal ───────────────────────────────────────────────────
 function animate() {
   const speed = 0.1;
   updatePlayerMovement(controls, speed);
+  detectCollision();
   playerBody.position.copy(cameraPov.position);
   playerBody.position.y -= 2;
   renderer.render(scene, cameraAtiva);
