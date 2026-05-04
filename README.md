@@ -82,7 +82,7 @@ codigo shader
 
 # Controles
 
-- MOUSE: mexe a camera (tem que clicar na tela primeiro)
+- MOUSE: mexe a camera do personagem(tem que clicar na tela primeiro)
 - WASD: movimentação pelo cenário
 - C : troca a camera
 
