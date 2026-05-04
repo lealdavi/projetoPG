@@ -26,6 +26,7 @@ export async function createModels() {
     quadro,
     cesar,
     pilar_cesar,
+    porta,
   ] = await Promise.all([
     load("/models/vaso.glb", (modelo) => {
       modelo.position.set(0, 2.8, 0);
@@ -78,6 +79,13 @@ export async function createModels() {
       modelo.position.set(-12.5, 0, -7.5);
       modelo.scale.set(100, 30, 50);
     }),
+
+    load(
+      "/models/porta.glb",
+      (modelo) => {
+        modelo.position.set(10, 0, 8.5);
+        modelo.scale.set(4, 4, 1);
+      }),
   ]);
 
   if (quadro) {
@@ -104,6 +112,7 @@ export async function createModels() {
     quadro,
     cesar,
     pilar_cesar,
+    porta,
   ];
 
   models.forEach((model) => {
