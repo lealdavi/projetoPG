@@ -88,9 +88,9 @@ codigo shader
 
 # Alunos
 
-- Davi Leal - 8
+- Davi Leal de Sousa Siqueira - 832414
 - Gabriel Matheus de Souza - 832254
 - Letícia Ramos - 834748
 - Otávio Inácio de Oliveira - 831718
-- Rafaela Eduarda - 8
+- Rafaela Eduarda Pereira do Nascimento - 830920
 
