@@ -1,6 +1,7 @@
-# Projeto: Processamento Gráfico
+# Projeto: Processamento Gráfico - Museu
 
-Resumo projeto
+Neste projeto, cada grupo ficou responsável pelo desenvolvimento de uma cena 3D contendo diferentes tópicos estudados durante a disciplina, como transformações, câmeras, fontes de iluminação, texturas, animações e criação de shaders.
+O nosso grupo desenvolveu uma cena representando o interior de uma sala de museu, utilizando o framework javascript chamado de `three js`.
 
 # Criação da sala
 
@@ -26,8 +27,113 @@ Fotos dos objetos?
 
 # Aplicação de textura
 
+Além da textura aplicada nativamentos nos objetos importados, foram aplicadas texturas no teto, piso e paredes da sala.
+Para isso, inicialmente foram definidas as texturas utilizadas em cada plano que compõe a sala. Em seguida, o sistema percorre os mapas de textura presentes no material carregado, como textura principal (`map`), mapa de relevo (`normalMap`), rugosidade (`roughnessMap`), metalicidade (`metalnessMap`) e sombreamento ambiente (`aoMap`), configurando esses mapas para posterior aplicação durante a construção da sala.
+
 ```javascript
-codigo textura
+//Definição das texturas
+
+const roomSurfaces = [
+  {
+    name: "floor",
+    width: room.width,
+    length: room.depth,
+    texture: "/textures/floor/herringbone_parquet_4k.gltf",
+    pos_x: 0,
+    pos_y: 0,
+    pos_z: 0,
+    rot_x: -Math.PI / 2,
+    rot_y: 0,
+  },
+  {
+    name: "ceiling",
+    width: room.width,
+    length: room.depth,
+    texture: "/textures/wall/plastered_wall_4k.gltf",
+    pos_x: 0,
+    pos_y: room.height,
+    pos_z: 0,
+    rot_x: Math.PI / 2,
+    rot_y: 0,
+  },
+  {
+    name: "left_wall",
+    width: room.depth,
+    length: room.height,
+    texture: "/textures/wall/plastered_wall_4k.gltf",
+    pos_x: -room.width / 2,
+    pos_y: room.height / 2,
+    pos_z: 0,
+    rot_x: 0,
+    rot_y: Math.PI / 2,
+  },
+  {
+    name: "right_wall",
+    width: room.depth,
+    length: room.height,
+    texture: "/textures/wall/plastered_wall_4k.gltf",
+    pos_x: room.width / 2,
+    pos_y: room.height / 2,
+    pos_z: 0,
+    rot_x: 0,
+    rot_y: -Math.PI / 2,
+  },
+  {
+    name: "front_wall",
+    width: room.width,
+    length: room.height,
+    texture: "/textures/wall/plastered_wall_4k.gltf",
+    pos_x: 0,
+    pos_y: room.height / 2,
+    pos_z: -room.depth / 2,
+    rot_x: 0,
+    rot_y: 0,
+  },
+  {
+    name: "back_wall",
+    width: room.width,
+    length: room.height,
+    texture: "/textures/wall/plastered_wall_4k.gltf",
+    pos_x: 0,
+    pos_y: room.height / 2,
+    pos_z: room.depth / 2,
+    rot_x: 0,
+    rot_y: Math.PI,
+  },
+];
+
+//Verificando os tipos de textura do gltf e aplicação das texturas nos planos
+
+async function makePlane(width, length, gltfPath) {
+  const gltf = await loader.loadAsync(getModelUrl(gltfPath));
+
+  let material = null;
+  gltf.scene.traverse((child) => {
+    if (child.isMesh && !material) {
+      material = child.material;
+    }
+  });
+
+  if (!material) {
+    throw new Error(`No mesh material found in ${gltfPath}`);
+  }
+
+  const mapKeys = ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap"];
+  mapKeys.forEach((key) => {
+    if (material[key]) {
+      material[key].wrapS = THREE.RepeatWrapping;
+      material[key].wrapT = THREE.RepeatWrapping;
+      material[key].repeat.set(width / 4, length / 4);
+      material[key].needsUpdate = true;
+    }
+  });
+
+  material.needsUpdate = true;
+
+  const geometry = new THREE.PlaneGeometry(width, length);
+  return new THREE.Mesh(geometry, material);
+}
+
 ```
 
 # Cameras
