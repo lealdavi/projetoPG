@@ -43,7 +43,7 @@ window.addEventListener("resize", () => {
 });
 
 // ── Modelos ──────────────────────────────────────────────────────────
-const { modelGroup, vaso } = await createModels();
+const { modelGroup, vaso, ob } = await createModels();
 scene.add(modelGroup);
 
 // ── Sala ─────────────────────────────────────────────────────────────
@@ -134,6 +134,13 @@ function animate() {
   if (mixer) mixer.update(delta);
 
   if (vaso) vaso.rotation.y += 0.01;
+
+  if (ob) {
+    ob.rotation.y += 0.01;
+    ob.position.y =
+      4.8 + Math.sin(performance.now() * 0.0008) * 0.7;
+    ob.rotation.z += 0.01;
+  }
 
   renderer.render(scene, cameraAtiva);
 }
