@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { getModelUrl } from "./helper";
+import { createObject } from "./object.js";
 
 export async function createModels() {
   const loader = new GLTFLoader();
@@ -30,7 +31,7 @@ export async function createModels() {
   ] = await Promise.all([
     load("/models/vaso.glb", (modelo) => {
       modelo.position.set(0, 2.8, 0);
-      modelo.scale.set(5, 5, 5);
+      modelo.scale.set(4.5, 4, 4.5);
     }),
 
     load("/models/pilar_greece.glb", (modelo) => {
@@ -103,6 +104,10 @@ export async function createModels() {
     });
   }
 
+  const ob = createObject();
+  ob.position.set(0, 4.8, 0);
+  modelGroup.add(ob);
+
   const models = [
     vaso,
     pilar_greece,
@@ -119,5 +124,5 @@ export async function createModels() {
     if (model) modelGroup.add(model);
   });
 
-  return { modelGroup, vaso };
+  return { modelGroup, vaso, ob };
 }
