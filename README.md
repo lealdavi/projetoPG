@@ -100,7 +100,7 @@ export async function buildRoom() {
 
 # Inserção dos objetos
 
-Para compor o cenário do museu, foram importados modelos em formato `.glb`, além disso foi criado um objeto próprio em `object.js` e foi posicionado cada um dos 10 objetos na cena através de transformações básicas. A implementação completa está em `models.js` e `object.js` e os objestos importados estão em public/models. 
+Para compor o cenário do museu, foram importados modelos em formato `.glb` e `.gltf`, além disso foi criado um objeto próprio em `object.js` e foram posicionados cada um dos 10 objetos na cena através de transformações básicas. A implementação completa está em `models.js` e `object.js` e os objestos importados estão em public/models. 
 
 ```javascript
 //Inserção dos objetos importados na cena
